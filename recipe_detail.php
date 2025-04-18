@@ -27,6 +27,16 @@ $ingStmt = $pdo->prepare("
 $ingStmt->execute([$recipe['id']]);
 $ingredients = $ingStmt->fetchAll();
 
+// get steps
+$stepStmt = $pdo->prepare("
+    SELECT step_number, instruction
+    FROM steps
+    WHERE recipe_id = ?
+    ORDER BY step_number ASC
+");
+$stepStmt->execute([$recipe['id']]);
+$steps = $stepStmt->fetchAll();
+
 // handle inline edit
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
     $title = $_POST['title'] ?? '';
@@ -79,6 +89,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
                 <li><?php echo htmlspecialchars($ing['amount']) . ' ' . htmlspecialchars($ing['name']); ?></li>
             <?php endforeach; ?>
         </ul>
+    <?php endif; ?>
+
+    <!-- Steps -->
+    <?php if ($steps): ?>
+        <h4>👣 Steps</h4>
+        <ol>
+            <?php foreach ($steps as $step): ?>
+                <li><?php echo htmlspecialchars($step['instruction']); ?></li>
+            <?php endforeach; ?>
+        </ol>
     <?php endif; ?>
 
     <!-- Average Rating -->

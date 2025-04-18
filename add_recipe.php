@@ -36,6 +36,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // insert steps
+        if (!empty($_POST['steps'])) {
+            foreach ($_POST['steps'] as $num => $text) {
+                if (trim($text)) {
+                    $stmt = $pdo->prepare("INSERT INTO steps (recipe_id, step_number, instruction) VALUES (?, ?, ?)");
+                    $stmt->execute([$recipeId, $num, trim($text)]);
+                }
+            }
+        }
+
         header("Location: index.php");
         exit;
     } else {
@@ -68,6 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="text" name="amounts[<?php echo $ing['id']; ?>]" placeholder="Amount"><br>
     <?php endforeach; ?>
     <br>
+
+    <label>Steps:</label><br>
+    <?php for ($i = 1; $i <= 5; $i++): ?>
+        <textarea name="steps[<?php echo $i; ?>]" rows="2" cols="60" placeholder="Step <?php echo $i; ?>"></textarea><br><br>
+    <?php endfor; ?>
 
     <input type="submit" value="Post Recipe">
 </form>
