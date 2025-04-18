@@ -1,28 +1,26 @@
 <?php
-// basic connection to the database
-
-
+// database info
 $server = 'localhost';
 $database = 'recipe_hub';
 $username = 'root';
 $password = '';
 $encoding = 'utf8mb4';
 
-// connection string thingy
+// build connection string
 $connectString = "mysql:host=$server;dbname=$database;charset=$encoding";
 
-// some settings for how it runs
+// settings to keep it secure and useful
 $settings = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // show errors
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // clean results
-    PDO::ATTR_EMULATE_PREPARES => false, // better security
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // show detailed DB errors
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // return clean arrays
+    PDO::ATTR_EMULATE_PREPARES => false // better real SQL security
 ];
 
 try {
-    // make the actual connection here
+    // make the connection
     $pdo = new PDO($connectString, $username, $password, $settings);
 } catch (PDOException $error) {
-    // show error if it fails
+    // show error and stop if it fails
     die("Connection Failed: " . $error->getMessage());
 }
 ?>

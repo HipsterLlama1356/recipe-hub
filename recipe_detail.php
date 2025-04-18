@@ -81,6 +81,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
 
     <p><?php echo nl2br(htmlspecialchars($recipe['description'])); ?></p>
 
+    <?php
+        $tagStmt = $pdo->prepare("
+            SELECT t.name
+            FROM recipe_tags rt
+            JOIN tags t ON rt.tag_id = t.id
+            WHERE rt.recipe_id = ?
+        ");
+        $tagStmt->execute([$recipe['id']]);
+        $tags = $tagStmt->fetchAll();
+        ?>
+
+        <!-- Show Tags -->
+        <?php if ($tags): ?>
+            <div style="margin: 10px 0;">
+                <?php foreach ($tags as $tag): ?>
+                    <span style="font-size: 12px; color: red; border: 1px solid red; padding: 2px 6px; margin-right: 5px; border-radius: 3px;">
+                        <?php echo htmlspecialchars($tag['name']); ?>
+                    </span>
+                <?php endforeach; ?>
+            </div>
+     <?php endif; ?>
+    
+
     <!-- Ingredients -->
     <?php if ($ingredients): ?>
         <h4>🧂 Ingredients</h4>

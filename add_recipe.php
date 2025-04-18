@@ -84,5 +84,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <textarea name="steps[<?php echo $i; ?>]" rows="2" cols="60" placeholder="Step <?php echo $i; ?>"></textarea><br><br>
     <?php endfor; ?>
 
+    
+    <!-- Tags -->
+    <label>Tags:</label><br>
+    <?php
+    $tags = $pdo->query("SELECT * FROM tags")->fetchAll();
+    foreach ($tags as $tag): ?>
+        <input type="checkbox" name="tags[]" value="<?php echo $tag['id']; ?>">
+        <?php echo htmlspecialchars($tag['name']); ?><br>
+    <?php endforeach; ?>
+    <br>
+
     <input type="submit" value="Post Recipe">
 </form>
