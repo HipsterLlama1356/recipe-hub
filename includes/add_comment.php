@@ -1,6 +1,5 @@
 <?php
-include 'includes/header.php';
-
+// FIX: session_start BEFORE anything else
 session_start();
 require 'includes/db.php';
 
@@ -9,16 +8,18 @@ if (!isset($_SESSION['user_id'])) {
     die("Log in to comment.");
 }
 
-// get recipe id
 $recipeId = $_POST['recipe_id'] ?? null;
 $commentText = $_POST['comment'] ?? '';
 $userId = $_SESSION['user_id'];
 
-// make sure it's not empty
+// check if filled
 if ($recipeId && $commentText) {
     $add = $pdo->prepare("INSERT INTO comments (user_id, recipe_id, content, created_at) VALUES (?, ?, ?, NOW())");
     $add->execute([$userId, $recipeId, $commentText]);
-    echo "Comment posted!";
+
+    // 🔄 redirect back to recipe
+    header("Location: recipe_detail.php?id=$recipeId");
+    exit;
 } else {
     echo "Missing something...";
 }

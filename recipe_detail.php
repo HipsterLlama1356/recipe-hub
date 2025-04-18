@@ -1,40 +1,54 @@
 <?php
+session_start();
+require 'includes/db.php';
 include 'includes/header.php';
 
-require 'includes/db.php';
+$id = $_GET['id'] ?? null;
+if (!$id) die("No ID given.");
 
-// get recipe id from URL
-$rid = $_GET['id'] ?? null;
+$stmt = $pdo->prepare("SELECT * FROM recipes WHERE id = ?");
+$stmt->execute([$id]);
+$recipe = $stmt->fetch();
 
-// check if there's an ID
-if (!$rid) {
-    die("No recipe picked.");
-}
+if (!$recipe) die("Not found");
 
-// get the recipe from db
-$grab = $pdo->prepare("SELECT * FROM recipes WHERE id = ?");
-$grab->execute([$rid]);
-$recipe = $grab->fetch();
+// handle inline edit submit
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
+    $title = $_POST['title'] ?? '';
+    $desc = $_POST['description'] ?? '';
 
-// if nothing found
-if (!$recipe) {
-    die("Couldn't find recipe.");
+    if ($title && $desc && $_SESSION['user_id'] == $recipe['user_id']) {
+        $update = $pdo->prepare("UPDATE recipes SET title = ?, description = ? WHERE id = ?");
+        $update->execute([$title, $desc, $id]);
+        header("Location: recipe_detail.php?id=$id");
+        exit;
+    } else {
+        echo "Error: You can't edit this or you missed a field.";
+    }
 }
 ?>
 
-<!-- show the recipe -->
-<h2><?php echo htmlspecialchars($recipe['title']); ?></h2>
-<p><?php echo nl2br(htmlspecialchars($recipe['description'])); ?></p>
+<!-- Show editable form if ?edit=1 -->
+<?php if (isset($_GET['edit']) && isset($_SESSION['user_id']) && $_SESSION['user_id'] == $recipe['user_id']): ?>
+    <form method="post">
+        <input type="hidden" name="edit_recipe" value="1">
 
-<a href="index.php">← Go Back</a>
+        <label>Title:</label><br>
+        <input type="text" name="title" value="<?php echo htmlspecialchars($recipe['title']); ?>"><br><br>
 
-<?php if (isset($_SESSION['user_id'])): ?>
-    <h3>Leave a Comment</h3>
-    <form method="post" action="add_comment.php">
-        <input type="hidden" name="recipe_id" value="<?php echo $recipe['id']; ?>">
-        <textarea name="comment" placeholder="Write something..." rows="3" cols="40"></textarea><br>
-        <input type="submit" value="Post Comment">
+        <label>Description:</label><br>
+        <textarea name="description" rows="6" cols="50"><?php echo htmlspecialchars($recipe['description']); ?></textarea><br><br>
+
+        <input type="submit" value="Save">
+        <a href="recipe_detail.php?id=<?php echo $id; ?>">Cancel</a>
     </form>
+
 <?php else: ?>
-    <p><a href="login.php">Log in</a> to comment.</p>
+    <!-- Normal view mode -->
+    <h2><?php echo htmlspecialchars($recipe['title']); ?></h2>
+    <p><?php echo nl2br(htmlspecialchars($recipe['description'])); ?></p>
+
+    <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $recipe['user_id']): ?>
+        <a href="recipe_detail.php?id=<?php echo $id; ?>&edit=1">Edit</a>
+    <?php endif; ?>
 <?php endif; ?>

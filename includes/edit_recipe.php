@@ -1,7 +1,7 @@
 <?php
-include 'includes/header.php';
-session_start();
+session_start(); // must go first
 require 'includes/db.php';
+include 'includes/header.php';
 
 // make sure user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -32,7 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($newTitle && $newDesc) {
         $update = $pdo->prepare("UPDATE recipes SET title = ?, description = ? WHERE id = ?");
         $update->execute([$newTitle, $newDesc, $rid]);
-        echo "Recipe updated!";
+        header("Location: recipe_detail.php?id=$rid");
+        exit;
     } else {
         echo "Fill it out fully.";
     }
