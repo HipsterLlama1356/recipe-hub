@@ -18,6 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <div>
         <?php if (isset($_SESSION['user_id'])): ?>
             <a href="add_recipe.php" style="color:white; margin-right: 15px;">Add Recipe</a>
+            <a href="manage_ingredients.php" style="color:white; margin-right: 15px;">Ingredients</a>
             <a href="logout.php" style="color:white;">Logout</a>
         <?php else: ?>
             <a href="login.php" style="color:white; margin-right: 15px;">Login</a>

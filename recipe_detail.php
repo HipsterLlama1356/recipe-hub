@@ -6,6 +6,7 @@ include 'includes/header.php';
 $id = $_GET['id'] ?? null;
 if (!$id) die("No ID given.");
 
+// get recipe with category
 $stmt = $pdo->prepare("
     SELECT recipes.*, categories.name AS category_name
     FROM recipes
@@ -14,10 +15,19 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$id]);
 $recipe = $stmt->fetch();
-
 if (!$recipe) die("Not found");
 
-// handle inline edit submit
+// get ingredients
+$ingStmt = $pdo->prepare("
+    SELECT i.name, ri.amount
+    FROM recipe_ingredients ri
+    JOIN ingredients i ON ri.ingredient_id = i.id
+    WHERE ri.recipe_id = ?
+");
+$ingStmt->execute([$recipe['id']]);
+$ingredients = $ingStmt->fetchAll();
+
+// handle inline edit
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
     $title = $_POST['title'] ?? '';
     $desc = $_POST['description'] ?? '';
@@ -33,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
 }
 ?>
 
-<!-- If user clicked Edit, show the form -->
+<!-- Edit Form -->
 <?php if (isset($_GET['edit']) && isset($_SESSION['user_id']) && $_SESSION['user_id'] == $recipe['user_id']): ?>
     <form method="post">
         <input type="hidden" name="edit_recipe" value="1">
@@ -49,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
     </form>
 
 <?php else: ?>
-    <!-- Normal view mode -->
+    <!-- View Mode -->
     <h2>
         <?php echo htmlspecialchars($recipe['title']); ?>
         <?php if (!empty($recipe['category_name'])): ?>
@@ -61,18 +71,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
 
     <p><?php echo nl2br(htmlspecialchars($recipe['description'])); ?></p>
 
-    <!-- ⭐ Show average rating -->
+    <!-- Ingredients -->
+    <?php if ($ingredients): ?>
+        <h4>🧂 Ingredients</h4>
+        <ul>
+            <?php foreach ($ingredients as $ing): ?>
+                <li><?php echo htmlspecialchars($ing['amount']) . ' ' . htmlspecialchars($ing['name']); ?></li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+
+    <!-- Average Rating -->
     <?php
     $avgQuery = $pdo->prepare("SELECT AVG(rating) as avg_rating FROM ratings WHERE recipe_id = ?");
     $avgQuery->execute([$recipe['id']]);
     $avg = $avgQuery->fetchColumn();
-
     if ($avg):
     ?>
         <p><strong>Average Rating:</strong> <?php echo round($avg, 1); ?> ⭐</p>
     <?php endif; ?>
 
-    <!-- ⭐ Rating form -->
+    <!-- Rating Form -->
     <?php if (isset($_SESSION['user_id'])): ?>
         <form method="post" action="rate_recipe.php">
             <label>Rate this recipe:</label>
@@ -88,25 +107,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
         </form>
     <?php endif; ?>
 
-    <!-- ❤️ Favorite toggle -->
+    <!-- Favorite Button -->
     <?php if (isset($_SESSION['user_id'])): ?>
         <?php
         $checkFav = $pdo->prepare("SELECT * FROM favorites WHERE user_id = ? AND recipe_id = ?");
         $checkFav->execute([$_SESSION['user_id'], $recipe['id']]);
         $isFav = $checkFav->fetch();
         ?>
-
         <br>
         <a href="toggle_favorite.php?id=<?php echo $recipe['id']; ?>">
-            <?php if ($isFav): ?>
-                ❤️ Unfavorite
-            <?php else: ?>
-                🤍 Favorite
-            <?php endif; ?>
+            <?php echo $isFav ? "❤️ Unfavorite" : "🤍 Favorite"; ?>
         </a>
     <?php endif; ?>
 
-    <!-- ✏️ Edit / 🗑️ Delete (if owner) -->
+    <!-- Edit/Delete if Owner -->
     <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $recipe['user_id']): ?>
         <br><br>
         <a href="recipe_detail.php?id=<?php echo $id; ?>&edit=1">Edit</a> |
