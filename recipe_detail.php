@@ -6,7 +6,12 @@ include 'includes/header.php';
 $id = $_GET['id'] ?? null;
 if (!$id) die("No ID given.");
 
-$stmt = $pdo->prepare("SELECT * FROM recipes WHERE id = ?");
+$stmt = $pdo->prepare("
+    SELECT recipes.*, categories.name AS category_name
+    FROM recipes
+    LEFT JOIN categories ON recipes.category_id = categories.id
+    WHERE recipes.id = ?
+");
 $stmt->execute([$id]);
 $recipe = $stmt->fetch();
 
@@ -45,7 +50,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
 
 <?php else: ?>
     <!-- Normal view mode -->
-    <h2><?php echo htmlspecialchars($recipe['title']); ?></h2>
+    <h2>
+        <?php echo htmlspecialchars($recipe['title']); ?>
+        <?php if (!empty($recipe['category_name'])): ?>
+            <span style="font-size: 14px; color: red; margin-left: 10px;">
+                [<?php echo htmlspecialchars($recipe['category_name']); ?>]
+            </span>
+        <?php endif; ?>
+    </h2>
     <p><?php echo nl2br(htmlspecialchars($recipe['description'])); ?></p>
 
     <!-- Show Edit/Delete only if owner -->
