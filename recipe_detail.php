@@ -1,4 +1,6 @@
 <?php
+include 'includes/header.php';
+
 require 'includes/db.php';
 
 // get recipe id from URL

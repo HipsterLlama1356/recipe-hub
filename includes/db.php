@@ -1,40 +1,26 @@
 <?php
-// connect to database
-require 'includes/db.php';
+// basic connection to the database
+$server = 'localhost';
+$database = 'recipe_hub';
+$username = 'root';
+$password = '';
+$encoding = 'utf8mb4';
 
-// check if form was posted
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
-    // get data from form
-    $username = $_POST['username'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $rawPass = $_POST['password'] ?? '';
+// connection string thingy
+$connectString = "mysql:host=$server;dbname=$database;charset=$encoding";
 
-    // hash password
-    $hashed = password_hash($rawPass, PASSWORD_DEFAULT);
+// some settings for how it runs
+$settings = [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // show errors
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // clean results
+    PDO::ATTR_EMULATE_PREPARES => false, // better security
+];
 
-    // make sure stuff isn’t empty
-    if ($username && $email && $rawPass) {
-        // add new user to db
-        $addUser = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-        $addUser->execute([$username, $email, $hashed]);
-        echo "You’re signed up!";
-    } else {
-        echo "Fill in all fields pls.";
-    }
+try {
+    // make the actual connection here
+    $pdo = new PDO($connectString, $username, $password, $settings);
+} catch (PDOException $error) {
+    // show error if it fails
+    die("Connection Failed: " . $error->getMessage());
 }
 ?>
-
-<!-- very basic form -->
-<form method="post">
-    <label>Username:</label>
-    <input type="text" name="username"><br><br>
-
-    <label>Email:</label>
-    <input type="email" name="email"><br><br>
-
-    <label>Password:</label>
-    <input type="password" name="password"><br><br>
-
-    <input type="submit" value="Sign up">
-</form>

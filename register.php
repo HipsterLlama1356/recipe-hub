@@ -1,4 +1,6 @@
 <?php
+include 'includes/header.php';
+
 // connect to database
 require 'includes/db.php';
 
