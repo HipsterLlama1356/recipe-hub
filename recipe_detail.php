@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
 }
 ?>
 
-<!-- Show editable form if ?edit=1 -->
+<!-- If user clicked Edit, show the form -->
 <?php if (isset($_GET['edit']) && isset($_SESSION['user_id']) && $_SESSION['user_id'] == $recipe['user_id']): ?>
     <form method="post">
         <input type="hidden" name="edit_recipe" value="1">
@@ -48,7 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
     <h2><?php echo htmlspecialchars($recipe['title']); ?></h2>
     <p><?php echo nl2br(htmlspecialchars($recipe['description'])); ?></p>
 
+    <!-- Show Edit/Delete only if owner -->
     <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $recipe['user_id']): ?>
-        <a href="recipe_detail.php?id=<?php echo $id; ?>&edit=1">Edit</a>
+        <a href="recipe_detail.php?id=<?php echo $id; ?>&edit=1">Edit</a> |
+        <a href="delete_recipe.php?id=<?php echo $id; ?>" onclick="return confirm('Are you sure you want to delete this recipe?')">Delete</a>
     <?php endif; ?>
 <?php endif; ?>
