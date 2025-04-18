@@ -3,6 +3,7 @@
 session_start();
 require 'includes/db.php';
 
+
 // make sure logged in
 if (!isset($_SESSION['user_id'])) {
     die("Log in to comment.");

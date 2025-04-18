@@ -1,5 +1,7 @@
 <?php
 // basic connection to the database
+
+
 $server = 'localhost';
 $database = 'recipe_hub';
 $username = 'root';

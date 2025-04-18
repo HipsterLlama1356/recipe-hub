@@ -3,6 +3,7 @@ session_start(); // must go first
 require 'includes/db.php';
 include 'includes/header.php';
 
+
 // make sure user is logged in
 if (!isset($_SESSION['user_id'])) {
     die("You're not logged in.");

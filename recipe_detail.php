@@ -58,10 +58,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_recipe'])) {
             </span>
         <?php endif; ?>
     </h2>
+
     <p><?php echo nl2br(htmlspecialchars($recipe['description'])); ?></p>
 
-    <!-- Show Edit/Delete only if owner -->
+    <!-- ⭐ Show average rating -->
+    <?php
+    $avgQuery = $pdo->prepare("SELECT AVG(rating) as avg_rating FROM ratings WHERE recipe_id = ?");
+    $avgQuery->execute([$recipe['id']]);
+    $avg = $avgQuery->fetchColumn();
+
+    if ($avg):
+    ?>
+        <p><strong>Average Rating:</strong> <?php echo round($avg, 1); ?> ⭐</p>
+    <?php endif; ?>
+
+    <!-- ⭐ Rating form -->
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <form method="post" action="rate_recipe.php">
+            <label>Rate this recipe:</label>
+            <input type="hidden" name="recipe_id" value="<?php echo $recipe['id']; ?>">
+            <select name="rating">
+                <option value="1">⭐</option>
+                <option value="2">⭐⭐</option>
+                <option value="3">⭐⭐⭐</option>
+                <option value="4">⭐⭐⭐⭐</option>
+                <option value="5">⭐⭐⭐⭐⭐</option>
+            </select>
+            <input type="submit" value="Rate">
+        </form>
+    <?php endif; ?>
+
+    <!-- ❤️ Favorite toggle -->
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <?php
+        $checkFav = $pdo->prepare("SELECT * FROM favorites WHERE user_id = ? AND recipe_id = ?");
+        $checkFav->execute([$_SESSION['user_id'], $recipe['id']]);
+        $isFav = $checkFav->fetch();
+        ?>
+
+        <br>
+        <a href="toggle_favorite.php?id=<?php echo $recipe['id']; ?>">
+            <?php if ($isFav): ?>
+                ❤️ Unfavorite
+            <?php else: ?>
+                🤍 Favorite
+            <?php endif; ?>
+        </a>
+    <?php endif; ?>
+
+    <!-- ✏️ Edit / 🗑️ Delete (if owner) -->
     <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $recipe['user_id']): ?>
+        <br><br>
         <a href="recipe_detail.php?id=<?php echo $id; ?>&edit=1">Edit</a> |
         <a href="delete_recipe.php?id=<?php echo $id; ?>" onclick="return confirm('Are you sure you want to delete this recipe?')">Delete</a>
     <?php endif; ?>
